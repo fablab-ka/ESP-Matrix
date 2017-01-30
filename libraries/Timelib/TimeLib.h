@@ -123,7 +123,7 @@ void    setTime(int hr,int min,int sec,int day, int month, int yr);
 void    adjustTime(long adjustment);
 
 /* date strings */ 
-#define dt_MAX_STRING_LEN 9 // length of longest date string (excluding terminating null)
+#define dt_MAX_STRING_LEN 10 // length of longest date string (excluding terminating null)
 char* monthStr(uint8_t month);
 char* dayStr(uint8_t day);
 char* monthShortStr(uint8_t month);
