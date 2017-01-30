@@ -1,0 +1,6 @@
+[submodule "libraries/Timelib"]
+	path = libraries/Timelib
+	url = https://github.com/PaulStoffregen/Time.git
+[submodule "libraries/ESPAsyncWebServer"]
+	path = libraries/ESPAsyncWebServer
+	url = https://github.com/me-no-dev/ESPAsyncWebServer.git
