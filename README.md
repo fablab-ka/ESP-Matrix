@@ -18,13 +18,13 @@ Denkbar ist einerseits die Kontrolle über verschiedene Funktionen des ESP nach 
 
 Weiterhin sind weitere vorgefertigte Funktionen im ESP denkbar, so dass neben freien Texten und Zeitinformationen auch andere Informationen aus dem Internet geholt und dargestellt werden können.
 
-Um den Sketch zu kompilieren wird eine Arduino-IDE ab 1.8.1 benötigt, bei älteren IDEs muss die [ESP-Unterstützung von Github ](https://github.com/esp8266/Arduino "ESP8266/Arduino")installiert werden (nicht per Boardmanager-URL!), da ansonsten einige der Bibliotheken nicht kompiliert werden können. Die asynchronen Kommunikationsbibliotheken benötigen mindestens die Version 2.3 der ESP-Tools.
+Es wird empfohlen eine möglichst aktuelle Arduino-IDE (idealerweise 1.8.1) zu verwenden. Bei älteren IDEs kommt es mit den aktuellen ESP-Toolchains zu Problemen.  Die verwendeten asynchronen Bibliotheken benötigen unbedingt die Version 2.3 des ESP-Tools, [die wie folgt über den Boardmanager installiert werden kann](https://github.com/esp8266/Arduino#installing-with-boards-manager).
 
-In beiden Fällen muss der Arduino-IDE noch der [ESP-Uploadmanager hinzugefügt werden](http://esp8266.github.io/Arduino/versions/2.3.0/doc/filesystem.html#uploading-files-to-file-system "Uploading files to SPIFFS"). Damit bekommt die IDE unter dem Werkzeuge Menupunkt eine weitere Option: **"ESP8266 Sketch Data Upload"**.
+Zusätzlich muss der Arduino-IDE noch der [ESP-Uploadmanager hinzugefügt werden](http://esp8266.github.io/Arduino/versions/2.3.0/doc/filesystem.html#uploading-files-to-file-system "Uploading files to SPIFFS"). Damit bekommt die IDE unter dem Werkzeuge Menupunkt eine weitere Option: **"ESP8266 Sketch Data Upload"**.  Ohne diesen Punkt lassen sich keine Dateien in das SPIFFS Dateisystem laden!
 
 Bibliotheken
 ------------
-Verwendung finden die folgenden Bibliotheken aus Github, die für das Projekt gepatcht wurden.  Diese Bibliotheken finden sich im Ordner "libraries" dieses Repositories:
+Verwendung finden die folgenden Bibliotheken aus Github, die für das Projekt gepatcht wurden.  Diese gepatchten Bibliotheken finden sich im Ordner "libraries" dieses Repositories.
 
 - [**ESPAsyncWebServer.h**]( http://github.com/me-no-dev/ESPAsyncWebServer "Asynchroner Webserver")
 - [**Timelib.h**]( http://github.com/PaulStoffregen/Time "Timelib")
