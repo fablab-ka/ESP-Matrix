@@ -1,50 +1,46 @@
 <html>
 <head> <meta charset="UTF-8">
-<style>
+<script>
 
-ul.topnav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: #333;
-}
+  function retrieveMenu(_responseText){
+      menuDiv=document.getElementById("menuDiv");
+      menuDiv.innerHTML=_responseText;
+  }
 
-ul.topnav li {float: left;}
+ function doGetRequest(_url, _func_onReady, requestIsBinary ) {
+      requestIsBinary = requestIsBinary || false;
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", _url, true, "admin", "admin");
+      if (requestIsBinary) { xhr.responseType = "arraybuffer"; }
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+          if (requestIsBinary) {
+            var ByteArray = new Uint8Array(xhr.response);
+            _func_onReady(ByteArray);
+          } else {
+            _func_onReady(xhr.responseText);
+          }  
+        }
+      }
+      xhr.send(null);
+  }  
+  function startUpInit () {
+     doGetRequest( "/.menu.html", retrieveMenu);
+    }
 
-ul.topnav li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-}
 
-ul.topnav li a:hover:not(.active) {background-color: #111;}
+  document.addEventListener("DOMContentLoaded", startUpInit, false);
+  
+</script>
 
-ul.topnav li a.active {background-color: #4CAF50;}
-
-ul.topnav li.right {float: right;}
-
-@media screen and (max-width: 600px){
-    ul.topnav li.right,
-    ul.topnav li {float: none;}
-}
-</style>
 <title>MATRIX</title>
 </head>
 <body>
-
-<ul class="topnav">
-  <li><a class="active">MATRIX</a></li>
-  <li><a href="./wificonnectAP">Wlan</a></li>
-  <li><a href="./content">Inhalte</a></li>
-  <li><a href="./edit">HTML-Editor</a></li>
-</ul>
-</br>
+<div id="menuDiv"></div>
+<br>
 <a>Du bist auf der Startseite vom LED-MATRIX-DISPLAY</a>
-</br>
-Das LED-Matrixdisplay ist ein Projekt des <a href="https://fablab-karlsruhe.de/">Fablab Karlsruhe</a> und wird demnächst auf der <a href="https://github.com/fablab-ka">Github-Seite des Fablab</a> veröffentlicht!
+<br>
+Das LED-Matrixdisplay ist ein Projekt des <a href="https://fablab-karlsruhe.de/">Fablab Karlsruhe</a> und ist auf der <a href="https://github.com/fablab-ka">Github-Seite des Fablab</a> veröffentlicht!
 
 </body>
 </html>

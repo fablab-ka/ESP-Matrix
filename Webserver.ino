@@ -24,11 +24,27 @@ void setupWebserver()
   server.begin();
 }
 
+void printFreeHeap(int pagesize) {
+  Serial.print("Free Heap: ");
+  Serial.print(system_get_free_heap_size());
+  Serial.print("  Lenght page: ");
+  Serial.println(pagesize);
+}
+
 void handleOnContent(AsyncWebServerRequest *request){
   String page = FPSTR(HTML_CONTENT_HEAD);
-  page+=FPSTR(HTML_MENU_STYLE);
+  page+=F("<SCRIPT>");
+  page+=FPSTR(JS_SORT_BY_KEY);
+  page+=FPSTR(JS_DO_GET_REQUEST);  
+  page+=FPSTR(JS_POPULATE_SELECTION);
+  page+=FPSTR(JS_INIT_AFTER_LOAD);
+  page+=F("</SCRIPT>");
   page+=FPSTR(HTML_CONTENT_HEADEND);
-  page+=FPSTR(HTML_MENU);
+  File menuFile = SPIFFS.open("/.menu.html", "r");
+  while (menuFile.available()){
+    page += menuFile.readStringUntil('\n');
+  }
+  menuFile.close();
   page+=FPSTR(HTML_CONTENT_BODY);
   request->send(200, "text/html", page);
 }
@@ -72,9 +88,12 @@ void handleConfigAP(AsyncWebServerRequest *request){
   String page = FPSTR(HTML_HEAD);
   page.replace("{title}", FPSTR(HTML_TITLE_CONFIG));
   page += FPSTR(HTML_BASIC_STYLES);
-  page += FPSTR(HTML_MENU_STYLE);
   page += FPSTR(HTML_BODYSTART);
-  page += FPSTR(HTML_MENU);
+  File menuFile = SPIFFS.open("/.menu.html", "r");
+  while (menuFile.available()){
+    page += menuFile.readStringUntil('\n');
+  }
+  menuFile.close();
   page = page+"<h1>"+FPSTR(HTML_TITLE_CONFIG)+"</h1>";
   String form=FPSTR(HTML_GLOBAL_CONF );
   form.replace("{SSID}",GlobalConfig.mySSID);
@@ -121,9 +140,12 @@ void handleWiFiConnect2AP(AsyncWebServerRequest *request){
   page.replace("{title}", FPSTR(HTML_TITLE_APCONNECT));
   page += FPSTR(HTML_SELECTSCRIPT);
   page += FPSTR(HTML_BASIC_STYLES);
-  page += FPSTR(HTML_MENU_STYLE);
   page += FPSTR(HTML_BODYSTART);
-  page += FPSTR(HTML_MENU);
+  File menuFile = SPIFFS.open("/.menu.html", "r");
+  while (menuFile.available()){
+    page += menuFile.readStringUntil('\n');
+  }
+  menuFile.close();
   
   page = page+"<h1>"+FPSTR(HTML_TITLE_APCONNECT)+"</h1>";
   if (numWLANs == -1) { //scan still in progress
@@ -257,56 +279,40 @@ void handleApConfig(AsyncWebServerRequest *request){
 
 
 void handleOnContentSave(AsyncWebServerRequest *request){
-  int params = request->params();
-  for(int i=0;i<params;i++){
-    AsyncWebParameter* p = request->getParam(i);
-    if(! p->isFile()) {  // ONLY for GET and POST
-      if (! strcmp(p->name().c_str(), "text")) {
-        strlcpy( tape, p->value().c_str(), sizeof(tape));
-        for( uint16_t j=0; j<=strlen(tape); j++){
-          // map certain latin1 characters to extended ascii cp437
-          switch(tape[j]) {
-            case 0xA7: tape[j]=0x15; break; // §
-            case 0xB5: tape[j]=0xE5; break; // µ
-            case 0xB0: tape[j]=0xF7; break; // °
-            case 0xB2: tape[j]=0xFC; break; // ²
-            case 0xFC: tape[j]=0x81; break; // ü
-            case 0xE4: tape[j]=0x84; break; // ä
-            case 0xEB: tape[j]=0x89; break; // ë
-            case 0xC4: tape[j]=0x8E; break; // Ä
-            case 0xCB: tape[j]=0x45; break; // Ë->E
-            case 0xD8: tape[j]=0xEC; break; // 
-            case 0xF6: tape[j]=0x94; break; // ö
-            case 0xD6: tape[j]=0x99; break; // Ö
-            case 0xDF: tape[j]=0xE1; break; // ß
-            case 0xDC: tape[j]=0x9A; break; // Ü
-            case 0xF7: tape[j]=0xF5; break; // 
-          }
-          
-        }
-        Serial.print("Text received: ");
-        if(0 == strlen(tape)) {strlcpy(tape, "-", sizeof(tape));}
-        Serial.println(tape);
-      }
-      if (! strcmp(p->name().c_str(), "speed")) {
-        speedval=strtol(p->value().c_str(), NULL, 10);
-        if (speedval > 200) {speedval = 200;}
-        Serial.printf("Speed: %d\n", speedval);
-      }
-      if (! strcmp(p->name().c_str(), "brightness")) {
-        brightval=strtol(p->value().c_str(), NULL, 10);
-        if (brightval > 15) {brightval=15;}
-        Serial.printf("Brightness: %d\n", brightval);
-      }
-      if (! strcmp(p->name().c_str(), "content")) {
-        myContent=strtol(p->value().c_str(), NULL, 10);
-        if (myContent > 4) {myContent=4;}
-        Serial.printf("Content: %d\n", myContent);
-      }
+  Serial.println("ContentSave");
+  if (request->hasArg("content")) {
+    AsyncWebParameter* p = request->getParam("content", true);
+    Serial.println("request content ");
+    uint8_t myContent=strtol(p->value().c_str(), NULL, 10);
+    if (myContent > 5) {myContent=4;}
+    switch (myContent) {
+      case 0:  p = request->getParam("text", true);
+               Serial.println("content text");Serial.println(p->value().c_str());
+               myMatrix.setMode(0, p->value().c_str());
+               break;
+      case 1:
+      case 2:
+      case 3:  myMatrix.setMode(myContent, "");          
+               break;
+      case 5:  p = request->getParam("graphics", true);
+               Serial.print("graphics ");//Serial.println(p->value().c_str());
+               myMatrix.setMode(5, p->value().c_str());
+               break;
+      default: myMatrix.setMode(myContent, "");                     
+               break;
     }
+  }  
+  if (request->hasArg("speed")) {
+    AsyncWebParameter* p = request->getParam("speed", true);
+    Serial.println("request speed ");
+    myMatrix.setSpeed(strtol(p->value().c_str(), NULL, 10));
   }
-  String page =FPSTR(HTML_REDIRECT_CONTENT);
-  request->send(200, "text/html", page);
+  if (request->hasArg("brightness")) {
+    AsyncWebParameter* p = request->getParam("brightness", true);
+    Serial.println("request brightness ");
+    myMatrix.setBright(strtol(p->value().c_str(), NULL, 10));
+  }
+  request->send(204, "text/html");
 }
 
 
@@ -322,11 +328,41 @@ void do_pending_Webserver_Actions(void){
     digitalWrite(15, LOW);
     digitalWrite( 0,HIGH);
     digitalWrite( 2,HIGH);
-    delay(100);
+    delay(50);
     ESP.restart();
   }  
   
 }
+
+
+void setupTime()
+{
+  memset(NTPpacket, 0, sizeof(NTPpacket));
+  NTPpacket[0]=0b11100011;
+  NTPpacket[1]=0;
+  NTPpacket[2]=6;
+  NTPpacket[3]=0xEC;
+  NTPpacket[12]=49;
+  NTPpacket[13]=0x4E;
+  NTPpacket[14]=49;
+  NTPpacket[15]=52;
+  DNSClient dns;
+  dns.begin(WiFi.dnsIP());
+  Serial.println("dns started");
+  WiFi.hostByName(TimeServerName,timeServer);
+  if(ntpClient.connect(timeServer, TimeServerPort)) {
+    Serial.print("NTP UDP connected: "); Serial.println(timeServer);
+    ntpClient.onPacket([](AsyncUDPPacket packet) {
+        unsigned long highWord = word(packet.data()[40], packet.data()[41]);
+        unsigned long lowWord = word(packet.data()[42], packet.data()[43]);
+        time_t UnixUTCtime = (highWord << 16 | lowWord)-2208988800UL;
+        setTime(UnixUTCtime);
+        Serial.println("received NTP packet!");
+      });
+    } else {Serial.println("No connection to NTP Server possible");} 
+  ntpClient.write(NTPpacket, sizeof(NTPpacket));  
+}
+
 
 
 

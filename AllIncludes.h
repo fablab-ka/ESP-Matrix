@@ -19,30 +19,18 @@
   #include <Max72xxPanel.h>       // https://github.com/markruys/arduino-Max72xxPanel.git
   
   
-  #include <FS.h>
+  #include "FS.h"
   #include <EEPROM.h>
-  
+  #include <SPI.h>           
+  #include <memory>
+  #include "display.h"
+
   extern "C" {
-    // some ESP internal functions
     #include "user_interface.h"
   }
   
-  #include <SPI.h>           
-  #include <memory>
-  
   
   // Basiskonfigurationen ==============================================================================//
-  
-  // Display
-  #define SPACER     1  // Abstand zwischen den Zeichen
-  #define WAIT     120  // Anfangswartezeit für Scrollen
-  #define FONT_W     5  // Breite der Zeichen in Pixel
-  #define BRIGHTNESS 1  // Anfangshelligkeit
-  #define pinCS     12  // MISO  aka D6 zu CS des Displays verbinden
-  #define pinDIN    13  // MOSI  aka D7 zu Data IN des Displays
-  #define pinCLOCK  14  // CLOCK aka D5 zu Clock des Displays
-  #define numHoriz   4  // 4 Displayelemente
-  #define numVert    1  // in einer Reihe
   
   // Webserver und WiFi Konfigurationen
   #define CONF_VERSION 1    // 1..255 incremented, each time the configuration struct changes

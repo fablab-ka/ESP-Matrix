@@ -1,5 +1,5 @@
 /****************************************************************************************************
-*  LED-Matrix  1.0   (Alpha)                                                                        *
+*  LED-Matrix  1.1   
 *  Wolfgang Kraft, Fablab Karlsruhe 2017                                                            *
 *  Modul um eine Reihe LED-Matrizen (8x8) mittels ESP8266 als Display zu verwenden                  *
 *  Erste Features:                                                                                  *  
@@ -24,7 +24,7 @@
 // globale Variablen ==============================================================================//
 
 // Konfiguration für Flash
-struct T_ConfigStruct {
+struct T_ConfigStruct { 
   char    magic[5] = CONF_MAGIC;
   uint8_t version  = CONF_VERSION;
   char    mySSID[32] = CONF_DEFAULT_SSID;
@@ -72,17 +72,9 @@ void LoadAndCheckConfiguration( void) {
 
 char myIPaddress[18]="000.000.000.000  ";
 
-// LED-matrix
-Max72xxPanel matrix = Max72xxPanel(pinCS, numHoriz, numVert);
 
 
-int8_t   width = FONT_W + SPACER; // The font width is 5 pixels
-int16_t  screenStart = -1 * FONT_W;
-int16_t  screenEnd   = matrix.width()-1;
-int8_t   y = (matrix.height() - 8) / 2; // center the text vertically
-uint32_t lastrun=millis();
-int16_t  pos = screenEnd;
-uint8_t  letter = 0;
+
 
 // Zeitserver und Zeithandling
 IPAddress timeServer(0, 0, 0, 0);  // wird per NTP ermittelt
@@ -92,14 +84,9 @@ TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     //Central European S
 TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       //Central European Standard Time
 TimeChangeRule *tcr;  // Zeiger auf aktuelle Zeitzone
 Timezone CE(CEST, CET);
-static char convbuffer[6];
 time_t localTime;
 
-
-// Inhalt des Textbandes
-char tape[100]="Hallo ";
-
-
+LEDmatrix myMatrix(4,1);
 
 void setup(){
   Serial.begin(115200);
@@ -114,7 +101,6 @@ void setup(){
   WiFi.mode(WIFI_STA);
   Serial.println("Start in Client Mode!");
   WiFi.begin();
-  Serial.println("After WiFi.begin()!");
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("Start in Access Point Mode!");
     WiFi.mode(WIFI_AP);
@@ -131,29 +117,13 @@ void setup(){
     WiFi.scanNetworks(true);
   }
   setupTime();
-  Serial.println("After Setup Time");
   setupWebserver();
-  Serial.println("After Setup Webserver");
-  setupMatrix();
-  Serial.println("After Setup LED-Matrix");
 }
 
 
 
-
-
 void loop() {
-  matrix.setIntensity(brightval);
-  uint16_t wait = (450/(speedval+1))+48;
-  switch (myContent) {
-    case 0:  MatrixLoopText(wait); break;
-    case 1:
-    case 2:  MatrixLoopDateTime(wait); break;
-    case 3:  loadLocalTime(); MatrixShowText(wait);break;
-    default: strlcpy(tape, myIPaddress, sizeof(tape)); strlcat(tape, "  ", sizeof(tape)); MatrixLoopText(wait);
-  }
-
-  
+  myMatrix.loop();
   do_pending_Webserver_Actions();
 }
 
